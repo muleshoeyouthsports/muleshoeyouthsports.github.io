@@ -40,4 +40,12 @@
  add.addEventListener('click',()=>{const card=original.cloneNode(true);card.querySelector('.remove-child')?.remove();configure(card);container.appendChild(card);refresh();});
  refresh();
 })();const MYSA_REGISTRATION_API =
-  "https://mysa-registration.muleshoeyouthsports.workers.dev/";</script></body></html>
+  "https://mysa-registration.muleshoeyouthsports.workers.dev/";
+const registrationButton = document.getElementById('submit-registration');
+
+if (registrationButton) {
+  registrationButton.addEventListener('click', async function () {
+    alert('MYSA registration is still being set up. Please check back soon.');
+  });
+}
+</script></body></html>
