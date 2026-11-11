@@ -45,7 +45,42 @@ const registrationButton = document.getElementById('submit-registration');
 
 if (registrationButton) {
   registrationButton.addEventListener('click', async function () {
-  alert('MYSA registration is being connected to our secure registration system. Online submissions are not open yet.');
+    const getValue = id =>
+      document.getElementById(id)?.value.trim() || '';
+
+    const players = [...document.querySelectorAll('.child-card')]
+      .map(card => {
+        const value = name =>
+          card.querySelector(`[id^="${name}-child-"]`)?.value.trim() || '';
+
+        return {
+      firstName: value('player').split(/\s+/)[0] || '',
+lastName: value('player').split(/\s+/).slice(1).join(' '),
+          dob: value('dob'),
+          grade: value('grade'),
+          jerseySize: value('size')
+        };
+      });
+
+    const registration = {
+      players,
+      parentName: getValue('parent'),
+      parentEmail: getValue('email'),
+      parentPhone: getValue('phone'),
+      emergencyContact: getValue('emergency-contact'),
+      emergencyPhone: getValue('emergency-phone'),
+      paymentMethod: 'Cash',
+      waiverAccepted: document.getElementById('waiver')?.checked === true,
+      codeAccepted: document.getElementById('conduct')?.checked === true,
+      participationAccepted: document.getElementById('participation')?.checked === true
+    };
+
+    console.log('Registration form prepared:', {
+      playerCount: registration.players.length,
+      paymentMethod: registration.paymentMethod
+    });
+
+    alert('Registration form is prepared. Submissions are not enabled yet.');
   });
 }
 </script></body></html>
