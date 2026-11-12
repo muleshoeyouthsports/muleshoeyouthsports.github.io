@@ -80,7 +80,21 @@ lastName: value('player').split(/\s+/).slice(1).join(' '),
       paymentMethod: registration.paymentMethod
     });
 
-    alert('Registration form is prepared. Submissions are not enabled yet.');
+  try {
+  const response = await fetch(MYSA_REGISTRATION_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(registration)
+  });
+
+  const result = await response.json();
+
+  alert(result.message || 'Registration is not available yet.');
+} catch (error) {
+  alert('Unable to connect to MYSA registration. Please try again later.');
+}
   });
 }
 </script></body></html>
