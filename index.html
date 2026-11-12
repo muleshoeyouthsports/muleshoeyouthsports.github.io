@@ -42,6 +42,8 @@
 })();const MYSA_REGISTRATION_API =
   "https://mysa-registration.muleshoeyouthsports.workers.dev/";
 const registrationButton = document.getElementById('submit-registration');
+  const turnstileToken = () =>
+  document.querySelector('[name="cf-turnstile-response"]')?.value || '';
 
 if (registrationButton) {
   registrationButton.addEventListener('click', async function () {
@@ -70,6 +72,7 @@ lastName: value('player').split(/\s+/).slice(1).join(' '),
       emergencyContact: getValue('emergency-contact'),
       emergencyPhone: getValue('emergency-phone'),
       paymentMethod: 'Cash',
+      turnstileToken: turnstileToken(),
       waiverAccepted: document.getElementById('waiver')?.checked === true,
       codeAccepted: document.getElementById('conduct')?.checked === true,
       participationAccepted: document.getElementById('participation')?.checked === true
