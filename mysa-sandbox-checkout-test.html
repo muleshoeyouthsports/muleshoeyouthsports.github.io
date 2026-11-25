@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MYSA Sandbox Checkout Test</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<h1>MYSA Sandbox Checkout Test</h1>
+<p>This page submits a fictional one-player registration for $45 using Stripe test mode.</p>
+<div class="cf-turnstile" data-sitekey="0x4AAAAAAF5VWqItmSX-7Zji"></div>
+<button type="button" id="start">Start sandbox checkout</button>
+<button type="button" id="resume">Check or resume payment</button>
+<p role="status" id="status"></p>
+<script>
+const root = "https://mysa-registration-sandbox.muleshoeyouthsports.workers.dev/";
+const status = document.getElementById("status");
+const start = document.getElementById("start");
+const resume = document.getElementById("resume");
+const referenceKey = "mysa-sandbox-payment";
+const attemptKey = "mysa-checkout-test-attempt";
+async function request(route, body) {
+  const response = await fetch(new URL(route, root), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const result = await response.json();
+  if (!response.ok || result.success !== true) {
+    throw new Error(result.message || result.error || "Sandbox request failed.");
+  }
+  return result;
+}
+async function checkout() {
+  const [familyId, token] = (sessionStorage.getItem(referenceKey) || "").split(".");
+  if (!familyId || !token) throw new Error("Start a sandbox registration first.");
+  const result = await request("create-checkout-session", { familyId, token });
+  if (result.status === "paid") {
+    status.textContent = "Sandbox payment confirmed for family " + familyId;
+    return;
+  }
+  if (result.status === "processing") {
+    status.textContent = "Stripe is confirming the sandbox payment. Check again shortly.";
+    return;
+  }
+  const url = new URL(result.checkoutUrl);
+  if (result.status !== "open" || url.origin !== "https://checkout.stripe.com" ||
+      !url.pathname.includes("cs_test_")) throw new Error("Expected Stripe test Checkout.");
+  location.assign(url);
+}
+async function run(action) {
+  start.disabled = resume.disabled = true;
+  try {
+    await action();
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    start.disabled = resume.disabled = false;
+  }
+}
+start.addEventListener("click", () => run(async () => {
+  const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if (!turnstileToken) throw new Error("Complete the security check first.");
+  const attemptId = sessionStorage.getItem(attemptKey) || crypto.randomUUID();
+  sessionStorage.setItem(attemptKey, attemptId);
+  try {
+    const result = await request("register", {
+      attemptId, turnstileToken, paymentMethod: "Stripe",
+      players: [{ firstName: "Sandbox", lastName: "Tester", dob: "2017-01-01", grade: "3rd", jerseySize: "Youth M" }],
+      parentName: "Fictional Guardian", parentEmail: "mysa-test@example.com",
+      parentPhone: "806-555-0100", emergencyContact: "Fictional Contact",
+      emergencyPhone: "806-555-0101", waiverAccepted: true,
+      codeAccepted: true, participationAccepted: true
+    });
+    sessionStorage.setItem(referenceKey, result.familyId + "." + result.token);
+    sessionStorage.removeItem(attemptKey);
+    await checkout();
+  } finally {
+    window.turnstile?.reset();
+  }
+}));
+resume.addEventListener("click", () => run(checkout));
+</script></html>
