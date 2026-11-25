@@ -132,7 +132,7 @@ async function sandboxRequest(path, payload) {
   });
   const result = await response.json().catch(() => null);
   if (!response.ok || result?.success !== true) {
-    throw new Error(result?.message || 'Sandbox request failed. Please try again.');
+    throw new Error(result?.message || result?.error || 'Sandbox request failed. Please try again.');
   }
   return result;
 }
