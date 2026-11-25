@@ -46,7 +46,7 @@ function mysaLiveCardAction(data) {
       .filter(row => row.values[2] === familyId);
 
     if (registering && rows.length === 0) {
-      const saved = saveRegistration(data, familyId);
+      const saved = mysaSaveRegistrationLocked(data, familyId);
       return { success: true, familyId, token, totalAmount: saved.totalAmount };
     }
 
