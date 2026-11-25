@@ -24,7 +24,9 @@ async function request(route, body) {
   });
   const result = await response.json();
   if (!response.ok || result.success !== true) {
-    throw new Error(result.message || result.error || "Sandbox request failed.");
+    const message = result.message || result.error || "Sandbox request failed.";
+    const codes = Array.isArray(result.errorCodes) ? result.errorCodes.join(", ") : "";
+    throw new Error(codes ? message + " (" + codes + ")" : message);
   }
   return result;
 }
