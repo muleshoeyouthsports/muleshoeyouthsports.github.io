@@ -24,7 +24,7 @@
   </select>
 </div>
 
-<div class="mysa-waiver"><h3>MYSA Registration Agreements</h3><p><strong>Applies to all children on this registration.</strong> Current season: Basketball. <strong>Draft — subject to Texas legal and insurance review.</strong></p><div class="waiver-scroll" tabindex="0"><h4>1. Waiver of Liability</h4><p>As the parent or legal guardian, I give permission for my child(ren) to participate in Muleshoe Youth Sports Association (MYSA) youth sports activities. I understand sports involve risks of injury, including falls, collisions and other accidents. To the fullest extent permitted by Texas law, I release MYSA, its board members, coaches, volunteers and representatives from claims arising from ordinary negligence connected with participation. This release does not cover gross negligence, reckless or intentional misconduct, or liability that cannot legally be waived.</p></div><p class="waiver-label"><label><input id="waiver" required="" type="checkbox"/> I have read and accept the Waiver of Liability.</label></p><div class="waiver-scroll" tabindex="0"><h4>2. Parent/Guardian Code of Conduct</h4><ul><li>I will put children's safety and well-being ahead of winning.</li><li>I will respect players, coaches, officials, spectators and families.</li><li>I will respect officials' and coaches' decisions.</li><li>I will not use profanity, threats, bullying or violence.</li><li>I will encourage my child and demonstrate good sportsmanship.</li><li>I will not ridicule anyone at an event or online.</li><li>I will follow MYSA rules and help keep sports positive for everyone.</li></ul></div><p class="waiver-label"><label><input id="conduct" required="" type="checkbox"/> I have read and accept the Parent/Guardian Code of Conduct.</label></p><div class="waiver-scroll" tabindex="0"><h4>3. Parent Participation</h4><p>Parent involvement is important to MYSA. I understand parents may be asked to assist with the game clock, scorekeeping, concessions, gym cleanup or other volunteer duties during the season.</p></div><p class="waiver-label"><label><input id="participation" required="" type="checkbox"/> I understand and acknowledge the Parent Participation expectations.</label></p><p class="muted">Your responses to the three checkboxes are recorded with your registration.</p></div><div id="summary">Registration total: $45.00 (1 player × $45)</div><div class="notice"><strong>Registration Information.</strong> Complete the registration form and submit your information online. Payment is accepted by cash, check, or card. Registration is not complete until payment is received.</div><div class="cf-turnstile" data-sitekey="0x4AAAAAAF5VWqItmSX-7Zji"></div><div class="registration-actions">
+<div class="mysa-waiver"><h3>MYSA Registration Agreements</h3><p>Please review and accept each agreement below before submitting. Your responses apply to every child listed on this basketball registration.</p><p class="muted">The waiver language is pending legal and insurance review.</p><div class="waiver-scroll" tabindex="0"><h4>1. Waiver of Liability</h4><p>As the parent or legal guardian, I give permission for my child(ren) to participate in Muleshoe Youth Sports Association (MYSA) youth sports activities. I understand sports involve risks of injury, including falls, collisions and other accidents. To the fullest extent permitted by Texas law, I release MYSA, its board members, coaches, volunteers and representatives from claims arising from ordinary negligence connected with participation. This release does not cover gross negligence, reckless or intentional misconduct, or liability that cannot legally be waived.</p></div><p class="waiver-label"><label><input id="waiver" required="" type="checkbox"/> I have read and accept the Waiver of Liability.</label></p><div class="waiver-scroll" tabindex="0"><h4>2. Parent/Guardian Code of Conduct</h4><ul><li>I will put children's safety and well-being ahead of winning.</li><li>I will respect players, coaches, officials, spectators and families.</li><li>I will respect officials' and coaches' decisions.</li><li>I will not use profanity, threats, bullying or violence.</li><li>I will encourage my child and demonstrate good sportsmanship.</li><li>I will not ridicule anyone at an event or online.</li><li>I will follow MYSA rules and help keep sports positive for everyone.</li></ul></div><p class="waiver-label"><label><input id="conduct" required="" type="checkbox"/> I have read and accept the Parent/Guardian Code of Conduct.</label></p><div class="waiver-scroll" tabindex="0"><h4>3. Parent Participation</h4><p>Parent involvement is important to MYSA. I understand parents may be asked to assist with the game clock, scorekeeping, concessions, gym cleanup or other volunteer duties during the season.</p></div><p class="waiver-label"><label><input id="participation" required="" type="checkbox"/> I understand and acknowledge the Parent Participation expectations.</label></p><p class="muted">Your responses to the three checkboxes are recorded with your registration.</p></div><div id="summary">Registration total: $45.00 (1 player × $45)</div><div class="notice"><strong>Registration Information.</strong> Complete the registration form and submit your information online. Payment is accepted by cash, check, or card. Registration is not complete until payment is received.</div><div class="cf-turnstile" data-sitekey="0x4AAAAAAF5VWqItmSX-7Zji"></div><div class="registration-actions">
   <div class="registration-submit">
     <p id="registration-submit-help">Review your information and agreements above, then click <strong>Submit Registration</strong>. If you chose Credit/Debit Card, Stripe Checkout will open next.</p>
     <button class="btn" id="submit-registration" type="button" aria-describedby="registration-submit-help">Submit Registration</button>
@@ -116,7 +116,8 @@ lastName: value('player').split(/\s+/).slice(1).join(' '),
     }
 
     registrationButton.disabled = true;
-    registrationStatus.textContent = 'Submitting your registration…';
+    registrationButton.textContent = 'Submitting…';
+    registrationStatus.textContent = 'Submitting your registration. Please wait.';
     try {
       if (registration.paymentMethod === 'Stripe') {
         const attemptId = sessionStorage.getItem(attemptKey) || crypto.randomUUID();
@@ -127,16 +128,20 @@ lastName: value('player').split(/\s+/).slice(1).join(' '),
         sessionStorage.setItem(paymentKey, reference);
         sessionStorage.removeItem(attemptKey);
         showPaymentResume();
+        registrationButton.textContent = 'Registration Submitted';
         registrationStatus.textContent = 'Registration received. Use Resume card payment below if Checkout does not open.';
         await resumePayment();
       } else {
         const result = await paymentRequest('', registration);
+        registrationButton.textContent = 'Registration Submitted';
         registrationStatus.textContent = result.message || 'Registration received. Payment is pending.';
       }
     } catch (error) {
+      registrationButton.textContent = 'Submit Registration';
       registrationStatus.textContent = error.message || 'Unable to submit the registration. Please try again.';
     } finally {
       showPaymentResume();
+      if (registrationButton.textContent === 'Registration Submitted') registrationButton.disabled = true;
       window.turnstile?.reset();
     }
   });
@@ -183,6 +188,7 @@ async function resumePayment() {
     if (result.status === 'paid') {
       sessionStorage.removeItem(paymentKey);
       showPaymentResume();
+      if (registrationButton.textContent === 'Registration Submitted') registrationButton.disabled = true;
       paymentStatus.textContent = 'Card payment confirmed.';
     } else if (result.status === 'processing') {
       paymentStatus.textContent = 'Stripe is confirming the card payment. Check again shortly.';
